@@ -1,0 +1,19 @@
+# Root level dockerignore (used when context is .)
+
+# Everything is built from subdirectories with their own context.
+# This just keeps the root context clean if ever needed.
+
+node_modules
+frontend/node_modules
+backend/.venv
+backend/venv
+**/.env
+**/.env.*
+**/__pycache__
+**/.next
+**/out
+**/.git
+**/*.log
+**/build.log
+**/CLAUDE.md
+**/AGENTS.md

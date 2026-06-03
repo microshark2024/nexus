@@ -1,0 +1,79 @@
+version: '3.8'
+
+# =============================================================================
+# Nexus - Full Stack Docker Compose
+#
+# This compose file runs both the Next.js frontend and FastAPI backend.
+#
+# IMPORTANT:
+# - Supabase is intentionally NOT included here.
+#   Use Supabase Cloud (recommended) or run `supabase start` locally via their CLI.
+# - You must create .env files first (see .env.example files).
+# - After first build, run: docker compose up --build
+# =============================================================================
+
+services:
+  # -----------------------------
+  # Backend (FastAPI + AI service)
+  # -----------------------------
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: nexus-backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./backend/.env
+    environment:
+      - DEBUG=false
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    networks:
+      - nexus-network
+
+  # -----------------------------
+  # Frontend (Next.js standalone)
+  # -----------------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: nexus-frontend
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./frontend/.env.local
+    environment:
+      # IMPORTANT: This is used by client-side JavaScript (browser fetch).
+      # From the host machine's browser → use localhost:8000 (the published port).
+      # In real production, change this to your public backend domain.
+      - NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - nexus-network
+
+networks:
+  nexus-network:
+    driver: bridge
+
+# Usage examples:
+#   docker compose up --build          # Build and start everything
+#   docker compose up -d               # Detached mode
+#   docker compose down                # Stop and remove containers
+#   docker compose logs -f frontend    # Tail frontend logs
+#
+# After starting:
+#   Frontend: http://localhost:3000
+#   Backend:  http://localhost:8000/docs
+#
+# Note: In production you would normally put Nginx/Traefik in front
+# and use proper secrets management instead of env_file.
