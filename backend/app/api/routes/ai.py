@@ -68,7 +68,7 @@ async def generate_insights(req: InsightRequest):
 
     content = await llm_service.chat_completion(messages, temperature=0.6, max_tokens=1400)
 
-    is_demo = not bool(settings.LLM_API_KEY)
+    is_demo = llm_service.is_demo_mode
 
     return InsightResponse(
         insight_type=req.insight_type,

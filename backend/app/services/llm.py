@@ -15,6 +15,14 @@ class LLMService:
         self.model = settings.LLM_MODEL
         self.client = httpx.AsyncClient(timeout=60.0)
 
+    @property
+    def is_demo_mode(self) -> bool:
+        if not self.api_key or not self.api_key.strip():
+            return True
+        if self.api_key in ("sk-...", "xai-...", "sk-your-key-here", "xai-your-key-here"):
+            return True
+        return False
+
     async def chat_completion(
         self,
         messages: List[Dict[str, str]],
@@ -24,7 +32,7 @@ class LLMService:
         """
         Call chat completions. Returns the assistant message content.
         """
-        if not self.api_key:
+        if self.is_demo_mode:
             # Fallback demo response when no key configured
             return self._demo_response(messages)
 

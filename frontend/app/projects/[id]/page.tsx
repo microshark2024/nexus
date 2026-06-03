@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
@@ -22,6 +22,11 @@ export default function ProjectDetailPage() {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiResult, setAiResult] = useState<AIInsightResponse | null>(null);
   const [insightType, setInsightType] = useState<"summary" | "priorities" | "risks" | "next_actions">("summary");
+
+  const tasksRef = useRef<Task[]>([]);
+  useEffect(() => {
+    tasksRef.current = tasks;
+  }, [tasks]);
 
   const supabase = createClient();
 
@@ -53,10 +58,21 @@ export default function ProjectDetailPage() {
       .channel(`project-tasks-${projectId}`)
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "tasks", filter: `project_id=eq.${projectId}` },
-        () => {
-          // Refresh on any change
-          loadData();
+        { event: "*", schema: "public", table: "tasks" },
+        (payload) => {
+          const oldRecord = payload.old as any;
+          const newRecord = payload.new as any;
+
+          const isOurProject =
+            (newRecord && newRecord.project_id === projectId) ||
+            (oldRecord && oldRecord.project_id === projectId) ||
+            (payload.eventType === "DELETE" &&
+              oldRecord &&
+              tasksRef.current.some((t) => t.id === oldRecord.id));
+
+          if (isOurProject) {
+            loadData();
+          }
         }
       )
       .subscribe();

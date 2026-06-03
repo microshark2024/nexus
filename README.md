@@ -53,7 +53,7 @@ nexus/
 1. 前往 [supabase.com](https://supabase.com) 新建项目
 2. 进入 **SQL Editor**，复制并执行 `supabase/migrations/001_init.sql` 中的全部内容
 3. 前往 **Authentication → Providers** 开启 Email（开发时可关闭邮箱确认）
-4. 复制 **Project URL** 和 **anon public** key
+4. 复制 **Project URL** 和 **publishable** key
 
 ### 2. 配置环境变量
 
@@ -69,14 +69,14 @@ cp backend/.env.example backend/.env
 **frontend/.env.local**
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=eyJ...
 NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
 ```
 
 **backend/.env**
 ```env
 SUPABASE_URL=...
-SUPABASE_SERVICE_ROLE_KEY=eyJ...   # 注意是 service_role，不是 anon！
+SUPABASE_SECRET_KEY=eyJ...   # 注意是 secret，不是 publishable！
 LLM_API_KEY=sk-...                 # 或者 xai-...
 LLM_BASE_URL=https://api.openai.com/v1
 LLM_MODEL=gpt-4o-mini
